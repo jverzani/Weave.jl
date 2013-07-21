@@ -1,0 +1,180 @@
+# Examples of HtmlWeave
+
+
+~~~{.julia hide=true}
+## this inserts code so googlecharts will embed
+using Gadfly
+using GoogleCharts ## to plot with google charts
+import Gadfly.gadfly_format
+gadfly_format(x::GoogleCharts.CoreChart) = GoogleCharts.gadfly_format(x)
+
+## using HtmlWeave
+using Weave
+tabs = Weave.tabbable()
+~~~
+
+~~~{commands=false asis=true}
+## Start tab set and add the first tab
+tabs.start()
+tabs.next("Basic content")
+~~~
+
+## Gadfly.weave
+
+`HtmlWeave` facilitates the writing of self-grading quizzes with
+markdown and embedded `julia` code and graphs. The bulk of the work is done by `Gadfly.weave`, this package provides the question writing interface and some other markup.
+
+Basic content is handled with markdown. Simple command are executed and printed with comments to separate them from the input:
+
+```
+2 + 2
+```
+
+There are ways to control what is printed:
+
+* `hide=true` hide commands and results
+* `commands=false` hide commands
+* `results=false` hide results
+* `output=false` suppress printed output
+* `asis=true` include output as is, without code blocks
+
+
+Graphics can be include via `googlecharts`:
+
+
+~~~{asis=true}
+using GoogleCharts
+plot(sin, 0, pi)
+~~~
+
+(For this to work, there is some code that needs including and the results need to be `asis`.)
+
+Gadfly graphics should work too, but for now they don't. They would be as simple as this (where the `Gadfly` prefix is included only because `GoogleCharts.plot` is loaded):
+
+~~~{.julia asis=true}
+p = Gadfly.plot(sin, 0, pi)
+~~~
+
+
+
+~~~{commands=false asis=true}
+tabs.next("Bootstrap styles")
+~~~
+
+## Bootstrap styles
+
+
+Bootstrap is used to style the pages. The navigation is provided by a
+`tabbable` function. It's use is fairly straightforward.
+
+
+To set text off, on can use a well:
+
+
+<div class="well">
+<p class="lead"><i class="icon-bullhorn"></i>Title</p>
+setoff text here
+</div>
+
+
+That was all in HTML which we want to avoid. There will be a `well` function.
+
+
+* styles:
+
+Examples:
+
+~~~{asis=true}
+example("Many parts")
+~~~
+
+Make an example
+
+
+
+~~~{asis=true}
+note("A note")
+~~~
+
+A basic note
+
+~~~{commands=false asis=true}
+alert("This is only a test", title="Warning", class="error")
+~~~
+
+That should have been an alert
+
+~~~{asis=true}
+blockquote("msg, but no mutliline messages are allowed. So this is kinda wierd", author="John")
+~~~
+
+
+There is a block quote above
+
+~~~{asis=true}
+Weave.inline_img("composition.png")
+~~~
+
+
+Inline images allow inclusion of local images without having to have a url, nice to make the pages self-contained.
+
+
+~~~{commands=false asis=true}
+## This is a new page on questions
+tabs.next("Questions")
+~~~
+
+## Questions
+
+There are some simple ways to incude self-grading questions. The H4 header will put an icon in front of the text, so use four pound signs to preface.
+
+
+#### Question 1
+
+what is 3?
+
+~~~{asis=true}
+Weave.numericq(3, .001; hint="answer is *three*")
+~~~
+
+
+#### Question 2
+
+What is *not* false?
+
+~~~{asis=true}
+Weave.booleanq(true, hint="answer is true")
+~~~
+
+#### Question 3 
+
+what is one?
+
+~~~{asis=true}
+Weave.radioq(["one *einz* **ichi** _uno_ un", "two", "three"], 1, hint="one is `1`, of course")
+~~~
+
+
+
+#### Question 4
+
+What is two?
+
+~~~{asis=true}
+Weave.choiceq(["one", "two", "three"], 2, hint="two is *two*, of course")
+~~~
+
+
+
+#### Question 5
+
+Spell "cat"
+
+~~~{asis=true}
+Weave.textq("^cat\$", hint="It is not *kat*")
+~~~
+
+
+~~~{commands=false asis=true}
+tabs.finish()
+~~~
