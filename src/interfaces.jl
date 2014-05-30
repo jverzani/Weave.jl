@@ -9,15 +9,16 @@ weave_args = [ "--mathjax",  "--highlight-style=tango"]
 # special case "" -> ""
 #
 function markdown(x::String, args...; stripp::Bool=true)
-    f = tempname() * ".md"
-    io = open(f, "w"); write(io, x); close(io)
-    out = Gadfly.weave(f, "markdown", "html5", 
-                       "--mathjax", "--highlight-style=tango", args...)
-    rm(f)
+    if length(x) == 0 
+        return("")
+    end
+
+    out = weave(IOBuffer(x), nothing, 
+                keyvals={"--highlight-style" => "tango"})
     chomp(out)
-    stripp ? out[4:end-5] : out
 end
     
+
 
 
 # markdownToHtml
@@ -33,12 +34,12 @@ function markdownToHtml(f;
                         )
     
     srand(1)
-
-    out = Gadfly.weave(f, "markdown", "html5", 
-                       "--mathjax", "--highlight-style=tango",
-                       "--template=" * Pkg.dir("Weave", "tpl", "pandoc-html5-tpl.html"),
-                       debug=debug);
-
+    
+    
+    out = weave(open(f), nothing,
+                template=Pkg.dir("Weave", "tpl", "pandoc-html5-tpl.html"),
+                keyvals={"--highlight-style" => "tango"})
+    
 #    tpl = Mustache.template_from_file(tpl)
 #    out = Mustache.render(tpl, {:body => out});
 

@@ -1,15 +1,18 @@
 module Weave
 
 using JSON
-using Compose
 using Codecs
 using Mustache
-using Gadfly
-using GoogleCharts
 using DataFrames
 
-import Gadfly.gadfly_format
+##using Judo
+## using GoogleCharts
+#using Compose
 
+
+# import Gadfly.gadfly_format
+#include("gadfly_weave.jl")
+include("judo_weave.jl")
 include("utils.jl")
 include("interfaces.jl")
 include("bootstrap.jl")

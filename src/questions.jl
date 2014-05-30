@@ -16,53 +16,6 @@ function question_id()
 end
 
 
-## Something like this: (though combo boxes aren't working!)
-# ~~~{.julia results="asis"}
-# begin
-# insert_simple_questions()
-# end
-# ~~~
-
-# <script type="text/markdown">
-# Question 1 =  () one () two (x) three
-
-# Question 2 = ___[25]
-
-# Question 3 = {BOS -> Boston, SFC -> San Francisco, (ANS -> New York)}
-# </script>
-
-function insert_simple_questions()
-    ## add wmd stuff for easy question writing. See Weave. No interpolation here
-"
-<!-- Super hacky way to get self-grading quiz questions -->
-<script src='https://raw.github.com/jverzani/wmd/master/showdown2.js'></script>
-  <script>
-    \$(function() {
-      // replace markdown text 
-      \$('script[type='text/markdown']').after(function(index){
-        converter = new Showdown.converter();
-        out = converter.makeHtml(this.text);
-        return(out)
-      });
-    });
-</script>
-<script>
-/* Super simple Growl-like notification v0.1
- * Copyright 2010 Sebastian Wallin 
- * licensed under the MIT license
- */
-(function(b){b.fn.extend({notify:function(a){var c=this;a=b.extend({text:'',addClass:'',duration:3E3,sticky:false},a);var e=b('<div></div>').addClass('notice-outer').appendTo(this[0]);this.item=b('<div></div>').html(a.text).addClass('notice-inner').addClass(a.addClass).appendTo(e);a.sticky?b('<span>x</span>').click(function(){c.disappear()}).appendTo(this.item):setTimeout(function(){c.disappear()},a.duration);this.disappear=function(){var d=this.item;d.parent().animate({opacity:'0',height:'0px'},300,function(){d.parent().remove()})};return this}})})(jQuery);
-function growl(msg, container) { \$('#' + container).notify({text:msg,duration:1000,addClass:'alert'});};
-function gripe(msg, container) { \$('#' + container).notify({text:msg,duration:500,addClass:'alert alert-error'});};
-</script>
-"
-end
-
-
-
-
-
-
 ##################################################
 
 
@@ -87,17 +40,17 @@ qtpl = "
 "
 
 ## XXX abstract out script for checking...
-script_tpl = "
+script_tpl = """
 \$('{{{selector}}}').on('change', function() {
   correct = {{{correct}}};
 
   if(correct) {
-     \$('#{{ID}}_message').html('<div class=\"alert alert-success\"><i class=\"icon-thumbs-up\"></i>&nbsp;Correct</div>');
+     \$('#{{ID}}_message').html('<div class="alert alert-success"><i class="icon-thumbs-up"></i>&nbsp;Correct</div>');
   } else {
-     \$('#{{ID}}_message').html('<div class=\"alert alert-error\"><i class=\"icon-thumbs-down\"></i>&nbsp;Incorrect</alert>');
+     \$('#{{ID}}_message').html('<div class="alert alert-error"><i class="icon-thumbs-down"></i>&nbsp;Incorrect</alert>');
   }
 });
-"
+"""
 
 
 # A choice (radio buttons) question
@@ -147,8 +100,8 @@ end
 # A true/false question using radio button
 #
 # ans boolean
-function booleanq(ans::Bool; hint::String="")
-    radioq(["true", "false"], ans == true ? 1 : 2, hint=hint, inline=true)
+function booleanq(ans::Bool; hint::String="", labels::Vector=["true", "false"])
+    radioq(labels, ans == true ? 1 : 2, hint=hint, inline=true)
 end
 
 
@@ -200,9 +153,9 @@ end
 # tol a tolerance
 # hint optional hint
 function numericq(ans::Number, tol::Number=sqrt(eps()); hint::String="")
-    tpl = "
-<input id='{{ID}}' type='number'>
-"
+    tpl = """
+<input id="{{ID}}" type="number">
+"""
 
     ID = question_id()
     form = Mustache.render(tpl, {"ID"=>ID})

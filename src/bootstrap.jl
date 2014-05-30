@@ -17,39 +17,43 @@ type Tabbable
         self = new()
         self.secs = String[]
         self.cur = 1
-        start_tpl = "
+        start_tpl = """
+<script type="text/javascript">
+function next_nav_tab() {\$('.tabbable li').filter('.active').next('li').find('a[data-toggle="tab"]').tab('show');window.scrollTo(0,0);}
+</script>
+<div id="tabbable" class="tabbable tabs-left">
+<ul class="nav nav-tabs"></ul>
+<div class="tab-content">
+"""
+        first_tpl = """
+<div class="tab-pane active" id="{{value}}">
+"""
 
-<div id=\"tabbable\" class=\"tabbable tabs-left\">
-<ul class=\"nav nav-tabs\"></ul>
-<div class=\"tab-content\">
-"
-        first_tpl = "
-<div class=\"tab-pane active\" id=\"{{value}}\">
-"
-
-        next_tpl = "
-
-<div class=\"pagination\">
+        next_tpl = """
+<div class="pagination">
 <ul><li>
-<a href=\"#{{value}}\"  data-toggle=\"tab\">Next</a>
+<button class="btn btn-default" onclick="next_nav_tab()">
+Next&nbsp;<span class="glyphicon glyphicon-chevron-right"></span></button>
 </li></ul>
+
+
 </div>
 
 </div>
-<div  class=\"tab-pane\" id=\"{{value}}\">
-
-"
+<div  class="tab-pane" id="{{value}}">
+"""
+##<a href="#{{value}}"  data-toggle="tab">Next</a>
         ## isn't working...
         XXXlast_tpl = "
 <div>
 <script>\$(\"#tabbable > ul\").html('{{#items}}<li{{active}}><a href=\"#{{value}}\" data-toggle=\"tab\">{{{label}}}</a></li>{{/items}}');</script>
 "
-        last_tpl = "
+        last_tpl = """
 </div>
 </div>
 </div>
-<script>\$(\"#tabbable > ul\").html('{{{items}}}');</script>
-"
+<script>\$(document).ready(function(){\$("#tabbable > ul").html('{{{items}}}');});</script>
+"""
 
         make_value(x) = "_" * replace(lowercase(x), " ", "_") * "_"
         self.start = () -> begin
@@ -69,7 +73,7 @@ type Tabbable
                                  label=secs)
 
             ## build up list items. Should iterate through template, but
-            ## isn't working for somereason
+            ## isn't working for some reason
             out = ""
             for i in 1:nrow(sections)
                 active=sections[i, "active"]; value=sections[i, "value"]; label=sections[i, "label"]
