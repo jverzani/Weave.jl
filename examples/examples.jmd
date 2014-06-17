@@ -1,65 +1,71 @@
-# Examples of HtmlWeave
+# Examples of Weave
 
 
-~~~{.julia hide=true}
-## this inserts code so googlecharts will embed
-using Gadfly
-using GoogleCharts ## to plot with google charts
-import Gadfly.gadfly_format
-gadfly_format(x::GoogleCharts.CoreChart) = GoogleCharts.gadfly_format(x)
-
-## using HtmlWeave
+```{hide=true, display=false, results="none"}
 using Weave
-tabs = Weave.tabbable()
-~~~
+tabs = tabbable()
+```
 
-~~~{commands=false asis=true}
-## Start tab set and add the first tab
+```{hide=true, results="js"}
+using Gadfly
+Gadfly.prepare_display()
+```
+
+
+```{results="html"}
 tabs.start()
 tabs.next("Basic content")
-~~~
+```
 
-## Gadfly.weave
+## Weave
 
-`HtmlWeave` facilitates the writing of self-grading quizzes with
-markdown and embedded `julia` code and graphs. The bulk of the work is done by `Gadfly.weave`, this package provides the question writing interface and some other markup.
+`Weave` facilitates the writing of self-grading quizzes with markdown
+and embedded `julia` code and graphs. The conversion from `Markdown`
+to `HTML` is done with `pandoc` using some code borrowed from DC
+Jones' `Judo` package, written to document `Gadfly`.  This package
+provides the question writing interface and some other markup.
 
-Basic content is handled with markdown. Simple command are executed and printed with comments to separate them from the input:
+Basic content is handled with markdown. Simple command are executed
+and printed with comments to separate them from the input:
 
 ```
 2 + 2
 ```
 
+More complicated expressions print the last value computed. There is
+no means to use `println` for intermediate results.
+
+```
+xs = 1:3
+ys = map(x->x^2, xs)
+[xs ys]
+```
+
+
+
+
 There are ways to control what is printed:
 
-* `hide=true` hide commands and results
-* `commands=false` hide commands
-* `results=false` hide results
-* `output=false` suppress printed output
-* `asis=true` include output as is, without code blocks
+* hide: Don't show the code block. (defaut: false)
+* execute: Do excute the code block. (default: true)
+* display: Do display output. (default: true)
+* results:
+   -none 
+   -block (default)
+   -expression
+   -asis
+
+Graphics can be include via `Gadfly`:
 
 
-Graphics can be include via `googlecharts`:
-
-
-~~~{asis=true}
-using GoogleCharts
+```
+using Gadfly
 plot(sin, 0, pi)
-~~~
+```
 
-(For this to work, there is some code that needs including and the results need to be `asis`.)
-
-Gadfly graphics should work too, but for now they don't. They would be as simple as this (where the `Gadfly` prefix is included only because `GoogleCharts.plot` is loaded):
-
-~~~{.julia asis=true}
-p = Gadfly.plot(sin, 0, pi)
-~~~
-
-
-
-~~~{commands=false asis=true}
+```{results="html"}
 tabs.next("Bootstrap styles")
-~~~
+```
 
 ## Bootstrap styles
 
@@ -68,61 +74,58 @@ Bootstrap is used to style the pages. The navigation is provided by a
 `tabbable` function. It's use is fairly straightforward.
 
 
-To set text off, on can use a well:
+To set text off, one can use `alert`:
 
 
-<div class="well">
-<p class="lead"><i class="icon-bullhorn"></i>Title</p>
-setoff text here
-</div>
+```{results="html"}
+alert("""
 
+This is an alert
 
-That was all in HTML which we want to avoid. There will be a `well` function.
+""")
+```
 
-
-* styles:
+There are some other styles:
 
 Examples:
 
-~~~{asis=true}
+```{results="html"}
 example("Many parts")
-~~~
+```
 
 Make an example
 
 
 
-~~~{asis=true}
+```{results="html"}
 note("A note")
-~~~
+```
 
 A basic note
 
-~~~{commands=false asis=true}
-alert("This is only a test", title="Warning", class="error")
-~~~
 
-That should have been an alert
-
-~~~{asis=true}
-blockquote("msg, but no mutliline messages are allowed. So this is kinda wierd", author="John")
-~~~
-
-
-There is a block quote above
-
-~~~{asis=true}
-Weave.inline_img("composition.png")
-~~~
+> *blockquotes* are just done using Markdown
 
 
 Inline images allow inclusion of local images without having to have a url, nice to make the pages self-contained.
 
+```{hide=true}
+using Compose
+fname = tempname()
+img = PNG(fname, 4inch, 3inch)
+draw(img, Gadfly.plot(x -> sin(x^2), 0, 2pi))
+Compose.finish(img)
+inline_img(fname)
+```
 
-~~~{commands=false asis=true}
+
+
+
+
+```{results="html"}
 ## This is a new page on questions
 tabs.next("Questions")
-~~~
+```
 
 ## Questions
 
@@ -133,26 +136,26 @@ There are some simple ways to incude self-grading questions. The H4 header will 
 
 what is 3?
 
-~~~{asis=true}
-Weave.numericq(3, .001; hint="answer is *three*")
-~~~
+```{results="js"}
+numericq(3, .001; hint="answer is *three*")
+```
 
 
 #### Question 2
 
 What is *not* false?
 
-~~~{asis=true}
-Weave.booleanq(true, hint="answer is true")
-~~~
+```{results="js"}
+booleanq(true, hint="answer is true")
+```
 
 #### Question 3 
 
 what is one?
 
-~~~{asis=true}
+```{results="js"}
 Weave.radioq(["one *einz* **ichi** _uno_ un", "two", "three"], 1, hint="one is `1`, of course")
-~~~
+```
 
 
 
@@ -160,9 +163,9 @@ Weave.radioq(["one *einz* **ichi** _uno_ un", "two", "three"], 1, hint="one is `
 
 What is two?
 
-~~~{asis=true}
-Weave.choiceq(["one", "two", "three"], 2, hint="two is *two*, of course")
-~~~
+```{results="js"}
+choiceq(["one", "two", "three"], 2, hint="two is *two*, of course")
+```
 
 
 
@@ -170,11 +173,11 @@ Weave.choiceq(["one", "two", "three"], 2, hint="two is *two*, of course")
 
 Spell "cat"
 
-~~~{asis=true}
+```{results="js"}
 Weave.textq("^cat\$", hint="It is not *kat*")
-~~~
+```
 
 
-~~~{commands=false asis=true}
+```{results="js"}
 tabs.finish()
-~~~
+```

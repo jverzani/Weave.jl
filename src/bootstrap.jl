@@ -123,6 +123,10 @@ function alert(text::String; title::String="", class::String="info")
                           })
 end
 
+## allow alert(:info, """stuff""")
+alert(class::Symbol, text) = alert(text, class=string(class))
+alert(class::Symbol, text, title) = alert(text, title=title,class=string(class))
+
 ## Images, video, ... (XXX separate file?)
 
 
