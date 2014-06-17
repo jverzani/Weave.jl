@@ -26,28 +26,29 @@ end
 # take file, convert to html, put into template
 # @param f  filename
 # @param tpl optional Mustache template
-# @param astext if false open in browser, else return as string
+# @param out filename or empty to display in browser
 function markdownToHtml(f; 
+                        out::String="",
                         tpl::String=Pkg.dir("Weave", "tpl", "weave-tpl.html"), 
-                        astext::Bool=false,
                         debug::Bool=false
                         )
     
     srand(1)
     
     
-    out = weave(open(f), nothing,
-                template=Pkg.dir("Weave", "tpl", "pandoc-html5-tpl.html"),
-                keyvals={"--highlight-style" => "tango"})
+    output = weave(open(f), nothing,
+                   template=Pkg.dir("Weave", "tpl", "pandoc-html5-tpl.html"),
+                   keyvals={"--highlight-style" => "tango"})
     
-#    tpl = Mustache.template_from_file(tpl)
-#    out = Mustache.render(tpl, {:body => out});
-
-    if !astext
-        outfile = tempname() * ".html";
-        io = open(outfile, "w"); write(io, out); close(io);
-        open_url(outfile)
-    else
-        out
-    end
+    #    tpl = Mustache.template_from_file(tpl)
+    #    out = Mustache.render(tpl, {:body => out});
+    
+    
+    
+    outfile = (out == "" ?  tempname() * ".html" : out)
+    io = open(outfile, "w")
+    write(io, output) 
+    close(io)
+    
+    out == "" && open_url(outfile)
 end

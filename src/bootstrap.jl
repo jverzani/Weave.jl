@@ -76,7 +76,7 @@ Next&nbsp;<span class="glyphicon glyphicon-chevron-right"></span></button>
             ## isn't working for some reason
             out = ""
             for i in 1:nrow(sections)
-                active=sections[i, "active"]; value=sections[i, "value"]; label=sections[i, "label"]
+                active=sections[i, :active]; value=sections[i, :value]; label=sections[i, :label]
                  out = out * "<li $active><a href=\"#$value\" data-toggle=\"tab\"> $label </a></li>"
              end
 

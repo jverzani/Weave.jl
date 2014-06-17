@@ -48,6 +48,7 @@ module WeaveSandbox
 end
 
 
+
 # A super-simple pandoc interface.
 #
 # Args:
@@ -328,8 +329,8 @@ function weave(input::IO, output::Union(Nothing, IO);
                 process_code_block(doc, block)
             catch err
                 msg = "Error processing codeblock in document $(name):\n$(string(err))"
-                println(msg)
-                println(block)
+#                println(msg)
+#                println(block)
             end
         else
             push!(doc.blocks, process_block(block))
@@ -473,7 +474,6 @@ const code_block_classes = Set(
 #   block:: Code block.
 #
 function process_code_block(doc::WeaveDoc, block::Dict)
-
     (id, classes, keyvals_array), text = block["CodeBlock"]
 
 
@@ -485,15 +485,15 @@ function process_code_block(doc::WeaveDoc, block::Dict)
     #  execute: Do excute the code block. (default: true)
     #  display: Do display output. (default: true)
     #  results:
-    #    none (default)
-    #    block
+    #    none 
+    #    block (default)
     #    expression
     #    asis
 
     keyvals["hide"]    = codeblock_keyval_bool(keyvals, "hide",    false)
     keyvals["execute"] = codeblock_keyval_bool(keyvals, "execute", true)
     keyvals["display"] = codeblock_keyval_bool(keyvals, "display", true)
-    keyvals["results"] = get(keyvals, "results", "expression")#"block")
+    keyvals["results"] = get(keyvals, "results", "block") # "expression")
     
 
     if isempty(classes) || classes[1] == "julia" ||
@@ -508,10 +508,19 @@ function process_code_block(doc::WeaveDoc, block::Dict)
                 end
             end
 
-            if keyvals["results"] == "block" && result != nothing
-                display(result)
+            if keyvals["results"] == "block" && (result != nothing && !isa(result, Function))
+                if isa(result, String)
+                    ## Hack to get strings to print and errors.
+                    ## really should split off as strings needs quotes, errors don't
+                    result = """<pre class="output"><code>$result</code></pre>"""
+                    block = {"RawBlock" => {"html", stringmime("text/html", result)}}
+                    push!(doc.display_blocks, block)
+                else
+                    display(result)
+                end
             end
             output_text = text
+                
         elseif keyvals["results"] == "expression"
             if keyvals["execute"]
 #                output_text = IOBuffer()
@@ -523,7 +532,9 @@ function process_code_block(doc::WeaveDoc, block::Dict)
                         !isa(out, Nothing) &&
                         !isa(out, Function)
                         io = IOBuffer()
-                        Base.showlimited(io, out)
+#                        Base.showlimited(io, out)
+                        writemime(io, MIME("text/plain"), out)
+#                        Base.display(io, out) #XXX
                         out = Base.takebuf_string(io)
                         close(io)
                         ## splice in "## ":
@@ -567,17 +578,18 @@ function process_code_block(doc::WeaveDoc, block::Dict)
         end
 
 
-        if keyvals["display"]
-            # TODO: Is there a way to check for output without this dirty trick?
-            ## JV: I hope so, without being able to call Base.reinit_stdio
-            ## I have to hit enter a milliion times
-            write(doc.stdout_write, '.')
-            stdout_output = readavailable(doc.stdout_read)[1:end-1]
-            if !isempty(stdout_output)
-                display("text/plain", stdout_output)
-            end
-            append!(doc.blocks, doc.display_blocks)
-        end
+        # if keyvals["display"]
+        #     # TODO: Is there a way to check for output without this dirty trick?
+        #     ## JV: I hope so, without being able to call Base.reinit_stdio
+        #     ## I have to hit enter a milliion times
+        #     write(doc.stdout_write, '.')
+        #     stdout_output = readavailable(doc.stdout_read)[1:end-1]
+        #     if !isempty(stdout_output)
+        #         display("text/plain", stdout_output)
+        #     end
+        #     append!(doc.blocks, doc.display_blocks)
+        # end
+        append!(doc.blocks, doc.display_blocks)
         empty!(doc.display_blocks)
     else
 
@@ -608,6 +620,8 @@ function safeeval(ex::Expr)
     try
         eval(WeaveSandbox, ex)
     catch e
+        println("Error with evaluating $ex")
+#        throw(e)
         string(e)
     end
 end
